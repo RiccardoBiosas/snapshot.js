@@ -82,6 +82,20 @@ export async function strategy(
     [address]
   ]);
 
+  // Fetch Farming Bancor LP token
+  const farmingLpBancorOpiumEthQuery = addresses.map((address: any) => [
+    options.LP_BANCOR_OPIUM,
+    'balanceOf',
+    [address]
+  ]);
+
+  // Fetch Farming Sushi LP token
+  const farmingLpSushiOpiumEthQuery = addresses.map((address: any) => [
+    options.LP_SUSHI_OPIUM,
+    'balanceOf',
+    [address]
+  ]);
+
   const response = await multicall(
     network,
     provider,
@@ -94,7 +108,13 @@ export async function strategy(
       ...opiumQuery,
       ...wOpiumQuery,
       ...lp1inchOpiumEthQuery,
-      ...farmingLp1inchOpiumEthQuery
+      ...farmingLp1inchOpiumEthQuery,
+      [options.OPIUM, 'balanceOf', [options.BANCOR_CONVERTER]],
+      ...farmingLpBancorOpiumEthQuery,
+      [options.FARMING_LP_1INCH_OPIUM_ETH, 'totalSupply'],
+      [options.OPIUM, 'balanceOf', [options.LP_SUSHI_OPIUM]],
+      ...farmingLpSushiOpiumEthQuery,
+      [options.LP_1INCH_OPIUM_ETH, 'totalSupply']
     ],
     { blockTag }
   );
@@ -108,6 +128,12 @@ export async function strategy(
   const wOpiumBalances = chunks[1];
   const lp1inchOpiumEthBalances = chunks[2];
   const farmingLp1inchOpiumEthBalances = chunks[3];
+  const opiumLpBancorContractBalance = chunks[4]
+  const farmingLpBancorOpiumEthQueryBalances = chunks[5]
+  const opiumLpBancorOpiumEthTotalSupply = chunks[6]
+  const opiumLpSushiContractBalance = chunks[7]
+  const farmingLpSushiOpiumEthQueryBalances = chunks[8]
+  const opiumLpSushiOpiumEthTotalSupply = chunks[9]
 
   return Object.fromEntries(
     Array(addresses.length)
@@ -129,6 +155,24 @@ export async function strategy(
                     )
                   )
                   .div(opiumLp1inchOpiumEthTotalSupply[0])
+              )
+              .add(
+                opiumLpBancorContractBalance[0]
+                  .mul(
+                    lp1inchOpiumEthBalances[i][0].add(
+                      farmingLpBancorOpiumEthQueryBalances[i][0]
+                    )
+                  )
+                  .div(opiumLpBancorOpiumEthTotalSupply[0])
+              )
+              .add(
+                opiumLpSushiContractBalance[0]
+                  .mul(
+                    lp1inchOpiumEthBalances[i][0].add(
+                      farmingLpSushiOpiumEthQueryBalances[i][0]
+                    )
+                  )
+                  .div(opiumLpSushiOpiumEthTotalSupply[0])
               )
               .toString(),
             DECIMALS
