@@ -10,7 +10,8 @@
                 "FARMING_LP_1INCH_OPIUM_ETH": "0x18d410f651289bb978fc32f90d2d7e608f4f4560",
                 "SUSHI": "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2",
                 "BANCOR": "0x1f573d6fb3f13d689ff844b4ce37794d79a7ff1c",
-                "LP_SUSHI_OPIUM": "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
+                "LP_SUSHI_OPIUM": "0xd84d55532b231dbb305908bc5a10b8c55ba21e5e",
+                "FARMING_LP_SUSHI_OPIUM": "0x55ab30d01ea1d6626c9b1d65bee89b563c24a73f",
                 "LP_BANCOR_OPIUM": "0xd0cB485b5b64B288F94D9c6ABA2982f5d60f2954",
                 "BANCOR_CONVERTER": "0xceeb324ff0ff9f651f69391cc07a94c2a8aedf28"
             }

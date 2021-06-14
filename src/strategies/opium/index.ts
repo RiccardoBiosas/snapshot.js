@@ -83,15 +83,22 @@ export async function strategy(
   ]);
 
   // Fetch Farming Bancor LP token
-  const farmingLpBancorOpiumEthQuery = addresses.map((address: any) => [
+  const farmingLpBancorOpiumQuery = addresses.map((address: any) => [
     options.LP_BANCOR_OPIUM,
     'balanceOf',
     [address]
   ]);
 
   // Fetch Farming Sushi LP token
-  const farmingLpSushiOpiumEthQuery = addresses.map((address: any) => [
+  const lpSushiOpiumQuery = addresses.map((address: any) => [
     options.LP_SUSHI_OPIUM,
+    'balanceOf',
+    [address]
+  ]);
+
+  // Fetch Farming Sushi LP token balance
+  const farmingLpSushiOpiumQuery = addresses.map((address: any) => [
+    options.FARMING_LP_SUSHI_OPIUM,
     'balanceOf',
     [address]
   ]);
@@ -105,35 +112,38 @@ export async function strategy(
       [options.OPIUM, 'balanceOf', [options.LP_1INCH_OPIUM_ETH]],
       // Get total supply of 1inch LP OPIUM-ETH
       [options.LP_1INCH_OPIUM_ETH, 'totalSupply'],
+      [options.OPIUM, 'balanceOf', [options.LP_SUSHI_OPIUM]],
+      [options.LP_SUSHI_OPIUM, 'totalSupply'],
+      [options.OPIUM, 'balanceOf', [options.BANCOR_CONVERTER]],
+      [options.LP_BANCOR_OPIUM, 'totalSupply'],
       ...opiumQuery,
       ...wOpiumQuery,
       ...lp1inchOpiumEthQuery,
       ...farmingLp1inchOpiumEthQuery,
-      [options.OPIUM, 'balanceOf', [options.BANCOR_CONVERTER]],
-      ...farmingLpBancorOpiumEthQuery,
-      [options.FARMING_LP_1INCH_OPIUM_ETH, 'totalSupply'],
-      [options.OPIUM, 'balanceOf', [options.LP_SUSHI_OPIUM]],
-      ...farmingLpSushiOpiumEthQuery,
-      [options.LP_1INCH_OPIUM_ETH, 'totalSupply']
+      ...farmingLpBancorOpiumQuery,
+      ...lpSushiOpiumQuery,
+      ...farmingLpSushiOpiumQuery
     ],
     { blockTag }
   );
-
   const opiumLp1inchOpiumEth = response[0];
   const opiumLp1inchOpiumEthTotalSupply = response[1];
-  const responseClean = response.slice(2, response.length);
+  const opiumLpSushiContractBalance = response[2]
+  const opiumLpSushiOpiumTotalSupply = response[3]
+  const opiumLpBancorContractBalance = response[4]
+  const opiumLpBancorOpiumTotalSupply = response[5]
 
+  const responseClean = response.slice(6);
+  
   const chunks = chunk(responseClean, addresses.length);
+  
   const opiumBalances = chunks[0];
   const wOpiumBalances = chunks[1];
   const lp1inchOpiumEthBalances = chunks[2];
   const farmingLp1inchOpiumEthBalances = chunks[3];
-  const opiumLpBancorContractBalance = chunks[4]
-  const farmingLpBancorOpiumEthQueryBalances = chunks[5]
-  const opiumLpBancorOpiumEthTotalSupply = chunks[6]
-  const opiumLpSushiContractBalance = chunks[7]
-  const farmingLpSushiOpiumEthQueryBalances = chunks[8]
-  const opiumLpSushiOpiumEthTotalSupply = chunks[9]
+  const farmingLpBancorOpiumQueryBalances = chunks[4];
+  const lpSushiOpiumQueryBalances = chunks[5];
+  const farmingLpSushiOpiumQueryBalances = chunks[6];
 
   return Object.fromEntries(
     Array(addresses.length)
@@ -160,19 +170,19 @@ export async function strategy(
                 opiumLpBancorContractBalance[0]
                   .mul(
                     lp1inchOpiumEthBalances[i][0].add(
-                      farmingLpBancorOpiumEthQueryBalances[i][0]
+                      farmingLpBancorOpiumQueryBalances[i][0]
                     )
                   )
-                  .div(opiumLpBancorOpiumEthTotalSupply[0])
+                  .div(opiumLpBancorOpiumTotalSupply[0])
               )
               .add(
                 opiumLpSushiContractBalance[0]
                   .mul(
-                    lp1inchOpiumEthBalances[i][0].add(
-                      farmingLpSushiOpiumEthQueryBalances[i][0]
+                    lpSushiOpiumQueryBalances[i][0].add(
+                      farmingLpSushiOpiumQueryBalances[i][0]
                     )
                   )
-                  .div(opiumLpSushiOpiumEthTotalSupply[0])
+                  .div(opiumLpSushiOpiumTotalSupply[0])
               )
               .toString(),
             DECIMALS
